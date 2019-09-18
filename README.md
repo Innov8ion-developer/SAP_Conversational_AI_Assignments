@@ -220,4 +220,4 @@ If you do not get the correct results, try finding out what went wrong by using 
 ![Address lookup result](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/addressLookupTest.png)
 
 ## Continue to the next assignment
-[Assignment 4](https://github.com/iemkek/SAP_Conversational_AI_Assignments/tree/4_Business_Partner_registration_on_S4HANA)
+[Assignment 4](https://github.com/Innov8ion-developer/SAP_Conversational_AI_Assignments/tree/4_Business_Partner_registration_on_S4HANA)
