@@ -1,44 +1,196 @@
-# Innov8ion SAP Conversational AI meeting
-All assignments for the Innov8ion SAP Conversational AI meeting are covered in this Github repository. Every branch is one assignment. You can navigate to the next assignment by clicking the link at the end of each assignment or by choosing the corresponding branch.
+# Assignment 2 - Chatbot with a response from webhook
+In the first assignment, the chatbot is responding to the user's input with a fixed message. Most of the time however, a dynamic response is much more convenient. Based on the specific user input and any actions that take place as a result of the input, the bot should then respond accordingly. This can be achieved with a webhook. A webhook is a simple script that can perform logical actions and return a dynamic response to the user.
 
-The scenario we will be developing is about creating a business partner on an S/4HANA system. We will start by setting up a simple chatbot that will respond to a user input and work our way to the actual business partner registration.
+At the end of this exercise we want to achieve the following functionality: 
+![Chatbot simple response result](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/webhookResponseTest.png)
 
-Please read through this page for some information regarding prerequisites and debugging possibilities. Then continue to the first assignment to get started. If you get stuck during the assignments, try to find out what is going wrong by using the tips and tricks on this page. 
+## Webhook
+Make sure you have all prerequisites set up before starting with this assignment. So before starting, you should have already succesfully deployed the "hello world" app from the prerequisites tutorial to the SCP Cloud Foundry environment. The prerequisites tutorial can be found [here](https://help.sap.com/viewer/65de2977205c403bbc107264b8eccf4b/Cloud/en-US/772b45ce6c46492b908d4c985add932a.html).
 
-[Assignment 1](https://github.com/iemkek/SAP_Conversational_AI_Assignments/tree/1_Chatbot_with_simple_response)
+> **Webhook** -
+> At many points in your conversation, you most likely want to retrieve business information or connect to an external system to perform actions. You can do this through webhooks. A webhook is a simple HTTP call to a script.
 
-#### Prerequisites
-You should have already completed the prerequisites for these assignments. If you have not done so already, you can find them [here](https://help.sap.com/viewer/65de2977205c403bbc107264b8eccf4b/Cloud/en-US/772b45ce6c46492b908d4c985add932a.html). If you complete the complete turorial, you are ready to go. It is a short SAP tutorial. 
+During this assignment we will be using the chatbot memory to store the important values given to us by the user.
 
-#### Debugging the chatbot
-There are two debug options in the SAP Conversational AI tool. You can access these options by pressing the TEST and CHAT WITH YOUR BOT buttons. These buttons are always visible on every page when you have created a bot.
+#### Step 1: Create a folder
+Create a new folder for your webhook application
 
-![Debugging the chatbot](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/chatbotDebug.png)
+#### Step 2: Initialize the application
+Open a command prompt window and navigate to your webhook application folder. Enter the following command and press enter:
 
-To give you an insight into what the chatbot is doing when you are testing it (by givings text inputs), you can use the debug functionality of the chatbot. To activate debugging, use the CHAT WITH YOUR BOT button and press the debug button on the top of the message window.
+```
+npm init
+```
 
-![Debugging the chatbot](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/chatbotDebug1.png)
+You will be prompted to answer a few questions. Enter the following:
 
-This screen (right side) will show you information regarding the skill that was triggered by your test input and what the response the skill was. In the above screenshot you can see that the createbp skill was triggered. The result of this skill was a message with content "Please give me your first and last name".
+```
+package name: (webhookRecast) <ENTER>
+version: (1.0.0) <ENTER>
+description: <ENTER>
+entry point: (index.js) webhook.js <ENTER>
+test command: <ENTER>
+git repository: <ENTER>
+keywords: <ENTER>
+author: <ENTER>
+license: (ISC) <ENTER>
+Is this OK? (yes) <ENTER>
+```
 
-An additional tool that you can use is the expression analyzer. This tool accepts text strings and will show you which intent the expression is reffering to and what entities are found. It can be accessed to pressing the TEST button.
+This will create a package.json file in the folder.
 
-![Debugging the chatbot](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/chatbotDebug2.png)
+#### Step 3: Extend package.json
+Open the package.json file in your favourite text/code editor (like [Notepad++](https://notepad-plus-plus.org/download/v7.7.1.html)) and add the "engines" and "scripts" sections so it looks similar to this:
 
-In the above screenshot the input test expression is "Iemke Kooijman" and the tool has determined that the corresponding intent for this expression is the createbp intent. It has also discovered that entity PERSON is in the expression.
+```json
+{
+  "name": "webhookrecast",
+  "version": "1.0.0",
+  "description": "",
+  "main": "webhook.js",
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": "10.x.x"
+  },  
+  "scripts": {
+    "start": "node webhook.js"
+  }
+}
+```
 
-#### Debugging the webhook
-It can be pretty hard to debug a server side script. There are lengthy tutorials on how to do this ([this](https://blogs.sap.com/2019/08/02/cloudfoundryfun-7-connect-vs-code-to-deployed-cloud-applications) tutorial for example). An easy way to get some basic information from your script is to use the logging functionality of Cloud Foundry applications. Use the following code in your script to check any variables in your script on a certain point:
+#### Step 4: Install dependencies
+In the command prompt, navigate to the webhook application folder and enter the following command:
+
+```
+npm install express body-parser
+````
+
+This will download and add the dependent express and body-parser libraries for the application to the webhook application folder and to the package.json file.
+
+#### Step 5: The manifest file
+In your webhook application folder, create a file called manifest.yml and open it in a text/code editor. Add the code you see below and change <UNIQUE_APPLICATION_NAME> with your own unique name (Hint: use your first or last name to make it unique).
+
+```yaml
+---
+applications:
+- name: <UNIQUE_APPLICATION_NAME>
+  path: .
+  memory: 128M
+```
+
+#### Step 6: The script file
+In your webhook application folder, create a file called webhook.js and open it in a text/code editor. Add the code below to the file.
 
 ```javascript
-console.log("<ANY_STRING_OR_VARIABLE>");
+'use strict';
+const express = require('express');
+const bodyParser = require('body-parser');
+
+const app = express();
+app.use(bodyParser.json());
+
+app.post('/postFullName', (req, res) => {
+	console.log(req.body.nlp.entities);
+	var sFullName = req.body.nlp.entities.person[0].fullname;
+	console.log(sFullName);
+	var aResults = sFullName.split(" ");
+	var sFirstName = aResults[0];
+	var sLastName = aResults[1];
+	console.log(sFirstName);
+	console.log(sLastName);
+	
+	// Send back response to chatbot
+	res.send({
+		replies: [
+					{ type: 'text',
+					  content: 'Thanks ' + sFirstName + '. Now please give me your postal code and house number.' }
+				 ],
+				 conversation: {
+					memory: {
+						user: { 
+							firstName: sFirstName,
+							lastName: sLastName
+						}
+					}
+				 }
+	})
+	
+});
+
+// Set up webserver so we can receive HTTP requests from chatbot
+const PORT = process.env.PORT || 8088;
+var server = app.listen(PORT, function () {
+
+    const host = server.address().address;
+    const port = server.address().port;
+
+    console.log('Webhook app listening at http://' + host + ':' + port);
+
+});
 ```
 
-After the script has run, use the following command in the command prompt to show the recent logging for your own application:
+#### Step 7: Push the application to Cloud Foundry
+In the command prompt, navigate to the webhook application folder and login to the Cloud Foundry environment with your SCP credentials by entering the following command:
 
 ```
-cf logs <APPLICATION_NAME> --recent
+cf login
 ```
 
-# Continue to the first assignment
-[Assignment 1](https://github.com/iemkek/SAP_Conversational_AI_Assignments/tree/1_Chatbot_with_simple_response)
+To deploy your application to the Cloud Foundry environment, enter the following command:
+
+```
+cf push
+```
+
+A successful deployment will look something like this:
+![Webhook deploy](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/webhookResponse3.png)
+
+#### Step 8: Check your deployed application
+Look for your deployed and started application on the SCP Cloud Foundry environment. Take note of the complete application url. It should be similar to this, but with your own unique application name:
+
+https://webhookrecast.cfapps.eu10.hana.ondemand.com
+
+You can find this url by logging into your [SCP trial account](http://account.hanatrial.ondemand.com) and navigating to the Cloud Foundry environment via the Cloud Foundry tile. Then go to your trail subbaccount. In the left menu go to 'Spaces' and click your space, now find your application in the list. Click it to see the details and find your application URL. Right click the url and use "Copy link address" to capture the entire URL.
+
+You need this url in the next step.
+
+![Check your deployed application](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/webhookResponse1.png)
+
+## SAP Conversational AI
+
+#### Step 1: Log in
+Go to https://cai.tools.sap/ and log in to your account. Now select the bot you have created.
+
+#### Step 2: Call the webhook
+Drill down into the @createbp intent. Go to the Build tab and drill down into the skill you created in the first assignment. Now go to the ACTIONS tab and add another message group by pressing the ADD A NEW MESSAGE GROUP button. Now select the CALL WEBHOOK option.
+
+![Call webhook](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/BusinessPartnerLookup2.png)
+
+Enter the complete application url in the input box followed by:
+
+```
+/postFullName
+```
+
+Add the following if statement to the message group:
+
+```
+IF #person.fullname is-present
+```
+
+The #person entity is standard predefined entity. If the user responds to the "Please give me your first and last name" expression from the first assignment by typing his first and last name, the chatbot can automatically determine that this is a #person.
+
+![Call the webhook](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/webhookResponse2.png)
+
+#### Step 3: Test it
+Test your chatbot by pressing the CHAT WITH YOUR BOT button and looking at the bot response.
+- Type the expression "Register as business partner" 
+- Now enter your first and last name (make sure you use capitals)
+
+If you do not get the correct results, try finding out what went wrong by using the tips and tricks on the master branch page [here](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/README.md#debugging-the-chatbot).
+
+![Test it](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/webhookResponseTest.png)
+
+# Continue to the next assignment
+[Assignment 3](https://github.com/iemkek/SAP_Conversational_AI_Assignments/tree/3_Address_lookup_and_user_interaction)
