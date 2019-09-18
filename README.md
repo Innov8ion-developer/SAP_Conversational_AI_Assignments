@@ -326,4 +326,4 @@ If you do not get the correct results, try finding out what went wrong by using 
 ![Business Partner lookup result](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/BusinessPartnerLookupTest.png)
 
 # Continue to the next assignment
-[Assignment 6 - Chatbot channels](https://github.com/iemkek/SAP_Conversational_AI_Assignments/tree/6_Chatbot_channels)
+[Assignment 6 - Chatbot channels](https://github.com/Innov8ion-developer/SAP_Conversational_AI_Assignments/tree/6_Chatbot_channels)
