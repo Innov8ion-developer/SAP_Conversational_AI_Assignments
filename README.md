@@ -5,7 +5,7 @@ The scenario we will be developing is about creating a business partner on an S/
 
 Please read through this page for some information regarding prerequisites and debugging possibilities. Then continue to the first assignment to get started. If you get stuck during the assignments, try to find out what is going wrong by using the tips and tricks on this page. 
 
-[Assignment 1](https://github.com/iemkek/SAP_Conversational_AI_Assignments/tree/1_Chatbot_with_simple_response)
+[Assignment 1](https://github.com/Innov8ion-developer/SAP_Conversational_AI_Assignments/tree/1_Chatbot_with_simple_response)
 
 #### Prerequisites
 You should have already completed the prerequisites for these assignments. If you have not done so already, you can find them [here](https://help.sap.com/viewer/65de2977205c403bbc107264b8eccf4b/Cloud/en-US/772b45ce6c46492b908d4c985add932a.html). If you complete the complete turorial, you are ready to go. It is a short SAP tutorial. 
@@ -41,4 +41,4 @@ cf logs <APPLICATION_NAME> --recent
 ```
 
 # Continue to the first assignment
-[Assignment 1](https://github.com/iemkek/SAP_Conversational_AI_Assignments/tree/1_Chatbot_with_simple_response)
+[Assignment 1](https://github.com/Innov8ion-developer/SAP_Conversational_AI_Assignments/tree/1_Chatbot_with_simple_response)
