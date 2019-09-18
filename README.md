@@ -1,44 +1,129 @@
-# Innov8ion SAP Conversational AI meeting
-All assignments for the Innov8ion SAP Conversational AI meeting are covered in this Github repository. Every branch is one assignment. You can navigate to the next assignment by clicking the link at the end of each assignment or by choosing the corresponding branch.
+# Assignment 6 - Chatbot Channels
+SAP Conversational AI allows you to make your chatbot available through a lot of different channels. By choosing the correct channels you can connect with your target audience. It is possible to integrate the chatbot in one of your own web applications, but also to connect it to existing services like Facebook (chat) or Amazon Alexa (voice). 
 
-The scenario we will be developing is about creating a business partner on an S/4HANA system. We will start by setting up a simple chatbot that will respond to a user input and work our way to the actual business partner registration.
+Let’s talk to our chatbot by leveraging the Amazon Alexa channel. 
 
-Please read through this page for some information regarding prerequisites and debugging possibilities. Then continue to the first assignment to get started. If you get stuck during the assignments, try to find out what is going wrong by using the tips and tricks on this page. 
+## Amazon developer account
+You will need to have an Amazon developer account to be able to access the Alexa service.
 
-[Assignment 1](https://github.com/iemkek/SAP_Conversational_AI_Assignments/tree/1_Chatbot_with_simple_response)
+#### Step 1: Register
+ Go to https://developer.amazon.com/settings/console/registration/nextstep to create a developer account.
 
-#### Prerequisites
-You should have already completed the prerequisites for these assignments. If you have not done so already, you can find them [here](https://help.sap.com/viewer/65de2977205c403bbc107264b8eccf4b/Cloud/en-US/772b45ce6c46492b908d4c985add932a.html). If you complete the complete turorial, you are ready to go. It is a short SAP tutorial. 
+## SAP Conversational AI
+Once your Amazon developer account is set up, its time to connect SAP Conversational AI to Amazon Alexa.
 
-#### Debugging the chatbot
-There are two debug options in the SAP Conversational AI tool. You can access these options by pressing the TEST and CHAT WITH YOUR BOT buttons. These buttons are always visible on every page when you have created a bot.
+#### Step 1: Log in
+Go to https://cai.tools.sap/ and log in to your account. Now select the bot you have created.
 
-![Debugging the chatbot](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/chatbotDebug.png)
+#### Step 2: Connect
+Select the Connect tab and open the Amazon Alexa line.
+![Select Channel](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/ChatbotChannels1.png)
 
-To give you an insight into what the chatbot is doing when you are testing it (by givings text inputs), you can use the debug functionality of the chatbot. To activate debugging, use the CHAT WITH YOUR BOT button and press the debug button on the top of the message window.
+Click “Login with Amazon” and provide your Amazon developer credentials. 
+![Login to Amazon](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/ChatbotChannels2.png)
 
-![Debugging the chatbot](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/chatbotDebug1.png)
+#### Step 3: Create the channel
+Once the connection is established, it’s time to choose an invocation name. This is the “magic” word that will let Alexa know that it needs to switch to SAP conversational AI. Feel free to personalize these two fields. Once you’re done click “Create Channel”.
+![Create Channel](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/ChatbotChannels3.png)
 
-This screen (right side) will show you information regarding the skill that was triggered by your test input and what the response the skill was. In the above screenshot you can see that the createbp skill was triggered. The result of this skill was a message with content "Please give me your first and last name".
+Leave the fields “Vendor” and “Locales” as suggested and click “Deploy skill to Amazon Alexa” 
 
-An additional tool that you can use is the expression analyzer. This tool accepts text strings and will show you which intent the expression is reffering to and what entities are found. It can be accessed to pressing the TEST button.
+![Deploy skill](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/ChatbotChannels4.png)
 
-![Debugging the chatbot](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/chatbotDebug2.png)
+SAP CAI has now created a skill on Amazon Alexa. But before we start talking to our chatbot we will need to make some adjustments to the reply’s of the webhook.
 
-In the above screenshot the input test expression is "Iemke Kooijman" and the tool has determined that the corresponding intent for this expression is the createbp intent. It has also discovered that entity PERSON is in the expression.
+## Webhook
+Remember how the webhook uses a “card” response containing a picture and a “buttons” response with YES/NO buttons? This is something we can’t convert to speech. Instead we will just need to reply with plain text.
 
-#### Debugging the webhook
-It can be pretty hard to debug a server side script. There are lengthy tutorials on how to do this ([this](https://blogs.sap.com/2019/08/02/cloudfoundryfun-7-connect-vs-code-to-deployed-cloud-applications) tutorial for example). An easy way to get some basic information from your script is to use the logging functionality of Cloud Foundry applications. Use the following code in your script to check any variables in your script on a certain point:
+#### Step 1: Change the webhook
+The first response that needs to be changed is the “Get address success”. Replace the following code:
 
 ```javascript
-console.log("<ANY_STRING_OR_VARIABLE>");
+replies: [
+		{ type: 'buttons',
+		  content: {
+			  "title": sText,
+			  "buttons": [
+				{
+				  "title": "Yes",
+				  "type": "BUTTON_TYPE",
+				  "value": "YES"
+				},
+				{
+				  "title": "No",
+				  "type": "BUTTON_TYPE",
+				  "value": "NO"
+				}
+			  ]
+			}}
+	 ]
 ```
 
-After the script has run, use the following command in the command prompt to show the recent logging for your own application:
+With:
+
+```javascript
+replies: [
+		{ type: 'text',
+		  content: sText }
+	 ],
+```
+
+The second response that needs to be changed is the “Post BP success”. Replace the following code:
+
+```javascript
+replies: [
+		{ type: 'text',
+		  delay: 2,
+		  content: 'You are now registered as a business partner.' },
+		{
+		  type: 'card',
+		  content: {
+			title: sFirstName + ' ' + sLastName + ' - ' + sBusinessPartnerNr,
+			subtitle: sStreet + ' ' + sHouseNumber + ', ' + sPostalCode + ' ' + sCity,
+			imageUrl: 'https://media.licdn.com/dms/image/C4E0BAQH9lwnKDWtBew/company-logo_400_400/0?e=1572480000&v=beta&t=wYK8bopvEmZQdhFnLnwq9okBQROfCqkVGA95UCFmlmA',
+			buttons: []
+		  }
+		}	
+	 ]
 
 ```
-cf logs <APPLICATION_NAME> --recent
+With:
+
+```javascript
+replies: [
+		{ type: 'text',
+		  delay: 2,
+		  content: 'You are now registered as business partner ' + sBusinessPartnerNr + '.' }
+	 ],
+
 ```
 
-# Continue to the first assignment
-[Assignment 1](https://github.com/iemkek/SAP_Conversational_AI_Assignments/tree/1_Chatbot_with_simple_response)
+#### Step 2: Push the application to Cloud Foundry
+In the command prompt, navigate to the webhook application folder and login to the Cloud Foundry environment with your SCP credentials by entering the following command:
+
+```
+cf login
+```
+
+To deploy your application to the Cloud Foundry environment, enter the following command:
+
+```
+cf push
+```
+
+## Amazon Alexa
+It’s time to chat! 
+Go to https://developer.amazon.com/alexa/console/ask and login with your credentials. You should find the skill that has been deployed by SAP conversational AI. Click the skill name.
+![Alexa Skills](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/ChatbotChannels5.png)
+
+On the next page, open the “Test” tab. Set the “Skill testing is enabled in:” drop down to “Development”, and we’re all set to start the chat!
+![Alexa developer console](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/ChatbotChannels6.png)
+
+To start chatting with Amazon Alexa click and hold the microphone icon. “Ask **[your invocation name]** to register business partner”
+
+![Chat!](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/ChatbotChannels7.png)
+ 
+If Alexa response with “Please give me your first and last name” you are talking to your chatbot in SAP conversational AI! Continue on chatting and see if you can register yourself through Amazon Alexa.
+
+# No more assignments.
+Thank you for participating in this session!
