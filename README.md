@@ -1,44 +1,329 @@
-# Innov8ion SAP Conversational AI meeting
-All assignments for the Innov8ion SAP Conversational AI meeting are covered in this Github repository. Every branch is one assignment. You can navigate to the next assignment by clicking the link at the end of each assignment or by choosing the corresponding branch.
+# Assignment 5 - Business Partner lookup on S4/HANA
+So now we can create a business partner through the chatbot. To check the business partner number you have received, we will create a business partner lookup functionality.
 
-The scenario we will be developing is about creating a business partner on an S/4HANA system. We will start by setting up a simple chatbot that will respond to a user input and work our way to the actual business partner registration.
+At the end of this exercise we want to achieve the following functionality:
+![Business Partner lookup result](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/BusinessPartnerLookupTest.png)
 
-Please read through this page for some information regarding prerequisites and debugging possibilities. Then continue to the first assignment to get started. If you get stuck during the assignments, try to find out what is going wrong by using the tips and tricks on this page. 
+## Webhook
 
-[Assignment 1](https://github.com/iemkek/SAP_Conversational_AI_Assignments/tree/1_Chatbot_with_simple_response)
+#### Step 1: Add the business partner lookup function to the webhook.js file
+Open the webhook.js file in your text/code editor and add the "postGetBusinessPartner" function so the file looks similar to this:
 
-#### Prerequisites
-You should have already completed the prerequisites for these assignments. If you have not done so already, you can find them [here](https://help.sap.com/viewer/65de2977205c403bbc107264b8eccf4b/Cloud/en-US/772b45ce6c46492b908d4c985add932a.html). If you complete the complete turorial, you are ready to go. It is a short SAP tutorial. 
-
-#### Debugging the chatbot
-There are two debug options in the SAP Conversational AI tool. You can access these options by pressing the TEST and CHAT WITH YOUR BOT buttons. These buttons are always visible on every page when you have created a bot.
-
-![Debugging the chatbot](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/chatbotDebug.png)
-
-To give you an insight into what the chatbot is doing when you are testing it (by givings text inputs), you can use the debug functionality of the chatbot. To activate debugging, use the CHAT WITH YOUR BOT button and press the debug button on the top of the message window.
-
-![Debugging the chatbot](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/chatbotDebug1.png)
-
-This screen (right side) will show you information regarding the skill that was triggered by your test input and what the response the skill was. In the above screenshot you can see that the createbp skill was triggered. The result of this skill was a message with content "Please give me your first and last name".
-
-An additional tool that you can use is the expression analyzer. This tool accepts text strings and will show you which intent the expression is reffering to and what entities are found. It can be accessed to pressing the TEST button.
-
-![Debugging the chatbot](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/chatbotDebug2.png)
-
-In the above screenshot the input test expression is "Iemke Kooijman" and the tool has determined that the corresponding intent for this expression is the createbp intent. It has also discovered that entity PERSON is in the expression.
-
-#### Debugging the webhook
-It can be pretty hard to debug a server side script. There are lengthy tutorials on how to do this ([this](https://blogs.sap.com/2019/08/02/cloudfoundryfun-7-connect-vs-code-to-deployed-cloud-applications) tutorial for example). An easy way to get some basic information from your script is to use the logging functionality of Cloud Foundry applications. Use the following code in your script to check any variables in your script on a certain point:
+**Note: make sure to replace the XXXXXX username and XXXXXX password in this script by the credentials supplied to you in the session**
 
 ```javascript
-console.log("<ANY_STRING_OR_VARIABLE>");
+'use strict';
+const express = require('express');
+const bodyParser = require('body-parser');
+
+const app = express();
+app.use(bodyParser.json());
+
+app.post('/postFullName', (req, res) => {
+	console.log(req.body.nlp.entities);
+	var sFullName = req.body.nlp.entities.person[0].fullname;
+	console.log(sFullName);
+	var aResults = sFullName.split(" ");
+	var sFirstName = aResults[0];
+	var sLastName = aResults[1];
+	console.log(sFirstName);
+	console.log(sLastName);
+	
+	// Send back response to chatbot
+	res.send({
+		replies: [
+					{ type: 'text',
+					  content: 'Thanks ' + sFirstName + '. Now please give me your postal code and house number.' }
+				 ],
+				 conversation: {
+					memory: {
+						user: { 
+							firstName: sFirstName,
+							lastName: sLastName
+						}
+					}
+				 }
+	})
+	
+});
+
+const axios = require('axios');
+app.post('/postAddressLookup', (req, res) => {
+	var sEntityName = 'postcode-housenumber';
+	var sPostalCodeHouseNumber = req.body.nlp.entities[sEntityName][0].raw;
+	var aResults = sPostalCodeHouseNumber.split(" ");
+	var sPostalCode = aResults[0] + " " + aResults[1];
+	var sHouseNumber = aResults[2];
+	console.log(sPostalCode);
+	console.log(sHouseNumber);
+	var sGetUrl = "http://postcode-api.nl/adres/" + sPostalCode;
+	console.log(sGetUrl);
+	
+	//Send HTTP Request
+	axios({
+	  method: 'get',
+	  url: sGetUrl,
+	})
+	.then(function (response) {
+		console.log("****************************** GET ADDRESS SUCCESS *****************************");
+		
+		var sStreet = response.data[0].straat;
+		var sCity = response.data[0].plaats;
+		var sPostalCode = response.data[0].postcode;
+		
+		// Store address data for later use
+		var oMemory = req.body.conversation.memory;
+		oMemory.address = {
+			postalCode: sPostalCode,
+			houseNumber: sHouseNumber,
+			street: sStreet,
+			city: sCity
+			
+		}	
+		
+		var sText = 'Is your address: ' + 
+					sStreet + ' ' + sHouseNumber + ', ' + 
+					sPostalCode + ' ' +
+					sCity + '?';
+		
+		//Send back response to chatbot
+		res.send({
+			replies: [
+						{ type: 'buttons',
+						  content: {
+							  "title": sText,
+							  "buttons": [
+								{
+								  "title": "Yes",
+								  "type": "BUTTON_TYPE",
+								  "value": "YES"
+								},
+								{
+								  "title": "No",
+								  "type": "BUTTON_TYPE",
+								  "value": "NO"
+								}
+							  ]
+							}}
+					 ],
+					 conversation: {
+						memory: oMemory
+				 }
+		})
+	  })
+	.catch(function (error) {
+		console.log("****************************** GET ADDRESS ERROR *****************************");
+		console.log(error);
+	  });
+	
+});
+
+app.post('/postCreateBusinessPartner', (req, res) => {	
+	// Get all variables from memory
+	var sFirstName = req.body.conversation.memory.user.firstName;
+	console.log(sFirstName);
+	var sLastName = req.body.conversation.memory.user.lastName
+	console.log(sLastName);
+	var sStreet = req.body.conversation.memory.address.street;
+	console.log(sStreet);
+	var sHouseNumber = req.body.conversation.memory.address.houseNumber;
+	console.log(sHouseNumber);
+	var sPostalCode = req.body.conversation.memory.address.postalCode;
+	console.log(sPostalCode);
+	var sCity = req.body.conversation.memory.address.city;
+	console.log(sCity);
+	
+	var sBaseUrl = 'http://iqibt-s4hana.sabaas.nl:8001';
+	var sUrl = '/sap/opu/odata/sap/ZGW_BUPA_SRV/BusinessPartnerSet';
+	axios({
+	  method: 'get',
+	  url: sUrl,
+	  baseURL: sBaseUrl,
+	  auth: {
+		username: 'XXXXXXX',
+		password: 'XXXXXXX'
+	  },
+	  headers: {'X-CSRF-Token': 'Fetch'}
+	})
+	.then(function (response) {
+		console.log("****************************** GET CSRF SUCCESS *****************************");
+		var sVarNameCSRF = 'x-csrf-token';
+		var sCSRFToken = response.headers[sVarNameCSRF];
+		console.log('csrf: ' + sCSRFToken);
+		var sVarNameCookie = 'set-cookie';
+		var sCookie = response.headers[sVarNameCookie][1];
+		console.log('cookie: ' + sCookie);
+		
+		var sBaseUrl = 'http://iqibt-s4hana.sabaas.nl:8001';
+		var sUrl = '/sap/opu/odata/sap/ZGW_BUPA_SRV/BusinessPartnerSet';
+		var data = { Businesspartner : '0000000', 
+					 Firstname : sFirstName,
+					 Lastname: sLastName,
+					 Streetname: sStreet,
+					 Housenumber: sHouseNumber,
+					 Postalcode: sPostalCode,
+					 Cityname: sCity
+				   };
+		var dataString = JSON.stringify(data);
+		
+		axios({
+		  method: 'post',
+		  url: sUrl,
+		  baseURL: sBaseUrl,
+		  auth: {
+			username: 'XXXXXXX',
+			password: 'XXXXXXX'
+		  },
+		  headers: {
+			'Content-Type': 'application/json',
+			'x-csrf-token': sCSRFToken,
+			'cookie': sCookie
+		  },
+		  data: dataString,
+		})
+		.then(function (response) {
+			console.log("****************************** POST BP SUCCESS *****************************");
+			var sBusinessPartnerNr = response.data.d.Businesspartner;
+			console.log(sBusinessPartnerNr);
+			
+			// Send back response to chatbot
+			res.send({
+				replies: [
+							{ type: 'text',
+							  delay: 2,
+							  content: 'You are now registered as a business partner.' },
+							{
+							  type: 'card',
+							  content: {
+								title: sFirstName + ' ' + sLastName + ' - ' + sBusinessPartnerNr,
+								subtitle: sStreet + ' ' + sHouseNumber + ', ' + sPostalCode + ' ' + sCity,
+								imageUrl: 'https://media.licdn.com/dms/image/C4E0BAQH9lwnKDWtBew/company-logo_400_400/0?e=1572480000&v=beta&t=wYK8bopvEmZQdhFnLnwq9okBQROfCqkVGA95UCFmlmA',
+								buttons: []
+							  }
+							}	
+						 ]
+			})
+		  })
+		.catch(function (error) {
+			console.log("****************************** POST BP ERROR *****************************");
+			console.log(error);
+		  });
+		
+		
+	  })
+	.catch(function (error) {
+		console.log("****************************** GET CSRF ERROR *****************************");
+		console.log(error);
+	  });	
+});
+
+app.post('/postGetBusinessPartner', (req, res) => {
+	var sBusinessPartnerNumber = req.body.nlp.entities.number[0].raw
+	console.log(sBusinessPartnerNumber);
+	
+	var sBaseUrl = 'http://iqibt-s4hana.sabaas.nl:8001';
+	var sUrl = '/sap/opu/odata/sap/ZGW_BUPA_SRV/BusinessPartnerSet';
+	var sFilter = "('" + sBusinessPartnerNumber + "')";
+	sUrl = sUrl + sFilter;
+	console.log(sUrl);
+	
+	axios({
+	  method: 'get',
+	  url: sUrl,
+	  baseURL: sBaseUrl,
+	  auth: {
+		username: 'XXXXXXX',
+		password: 'XXXXXXX'
+	  }
+	})
+	.then(function (response) { 
+	  console.log("****************************** GET BP SUCCESS *****************************");
+	  var data = response.data.d;
+	  console.log(data);
+	  
+	  
+	  
+	  	// Send back response to chatbot
+		res.send({
+			replies: [
+						{
+						  type: 'card',
+						  content: {
+							title: data.Businesspartnerfullname + ' - ' + data.Businesspartner,
+							subtitle: data.Streetname + ' ' + data.Housenumber + ', ' + data.Postalcode + ' ' + data.Cityname,
+							imageUrl: 'https://media.licdn.com/dms/image/C4E0BAQH9lwnKDWtBew/company-logo_400_400/0?e=1572480000&v=beta&t=wYK8bopvEmZQdhFnLnwq9okBQROfCqkVGA95UCFmlmA',
+							buttons: []
+						  }
+						}	
+					 ]
+		})
+	  
+	  
+	})
+	.catch(function (error) {
+	  console.log("****************************** GET BP ERROR *****************************");
+	  console.log(error);
+	});	
+	
+});
+
+// Set up webserver so we can receive HTTP requests from chatbot
+const PORT = process.env.PORT || 8088;
+var server = app.listen(PORT, function () {
+
+    const host = server.address().address;
+    const port = server.address().port;
+
+    console.log('Webhook app listening at http://' + host + ':' + port);
+
+});
 ```
 
-After the script has run, use the following command in the command prompt to show the recent logging for your own application:
+#### Step 2: Push the application to Cloud Foundry
+In the command prompt, navigate to the webhook application folder and login to the Cloud Foundry environment with your SCP credentials by entering the following command:
 
 ```
-cf logs <APPLICATION_NAME> --recent
+cf login
 ```
 
-# Continue to the first assignment
-[Assignment 1](https://github.com/iemkek/SAP_Conversational_AI_Assignments/tree/1_Chatbot_with_simple_response)
+To deploy your application to the Cloud Foundry environment, enter the following command:
+
+```
+cf push
+```
+
+## SAP Conversational AI
+SAP Conversational AI can recognize the sentiment of a message. In this assignment the chatbot should respond on the message 'yes' and it can recognize the sentiment in this to be 'positive' or 'very positive'. This will be the condition for the new message group we are going to create.
+
+#### Step 1: Log in
+Go to https://cai.tools.sap/ and log in to your account. Now select the bot you have created.
+
+#### Step 2: Call the webhook
+Drill down into the @createbp intent. Go to the Build tab and drill down into the skill you created in the first assignment. Now go to the ACTIONS tab and add another message group by pressing the ADD A NEW MESSAGE GROUP button. Now select the CALL WEBHOOK option.
+
+![Call webhook](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/BusinessPartnerLookup2.png)
+
+Enter the complete application url in the input box followed by:
+
+```
+/postGetBusinessPartner
+```
+
+Add the following if statement to the message group:
+
+```
+IF #number is-present
+```
+
+![Add new message group](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/BusinessPartnerLookup1.png)
+
+#### Step 3: Test it
+Test your chatbot by pressing the CHAT WITH YOUR BOT button.
+- Type the expression "Find business partner <YOUR_BUSINESS_PARTNER_NUMBER>"
+
+If you do not get the correct results, try finding out what went wrong by using the tips and tricks on the master branch page [here](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/README.md#debugging-the-chatbot).
+
+![Business Partner lookup result](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/BusinessPartnerLookupTest.png)
+
+# Continue to the next assignment
+[Assignment 6 - Chatbot channels](https://github.com/iemkek/SAP_Conversational_AI_Assignments/tree/6_Chatbot_channels)
