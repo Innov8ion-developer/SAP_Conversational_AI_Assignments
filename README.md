@@ -1,44 +1,96 @@
-# Innov8ion SAP Conversational AI meeting
-All assignments for the Innov8ion SAP Conversational AI meeting are covered in this Github repository. Every branch is one assignment. You can navigate to the next assignment by clicking the link at the end of each assignment or by choosing the corresponding branch.
+# Assignment 1 - Chatbot with a simple response
+In this first assignment we will be setting up the chatbot on the SAP Conversational AI webpage and make it reply to a user input.
 
-The scenario we will be developing is about creating a business partner on an S/4HANA system. We will start by setting up a simple chatbot that will respond to a user input and work our way to the actual business partner registration.
+At the end of this exercise we want to achieve the following functionality:
+![Chatbot simple response result](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/simpleResponseTest.png)
 
-Please read through this page for some information regarding prerequisites and debugging possibilities. Then continue to the first assignment to get started. If you get stuck during the assignments, try to find out what is going wrong by using the tips and tricks on this page. 
+## SAP Conversational AI
 
-[Assignment 1](https://github.com/iemkek/SAP_Conversational_AI_Assignments/tree/1_Chatbot_with_simple_response)
+#### Step 1: Log in
+Go to https://cai.tools.sap/ and create an account or log in to your account.
 
-#### Prerequisites
-You should have already completed the prerequisites for these assignments. If you have not done so already, you can find them [here](https://help.sap.com/viewer/65de2977205c403bbc107264b8eccf4b/Cloud/en-US/772b45ce6c46492b908d4c985add932a.html). If you complete the complete turorial, you are ready to go. It is a short SAP tutorial. 
+#### Step 2: Create bot
+Create a new bot in the SAP Conversational AI environment by clicking the NEW BOT button.
 
-#### Debugging the chatbot
-There are two debug options in the SAP Conversational AI tool. You can access these options by pressing the TEST and CHAT WITH YOUR BOT buttons. These buttons are always visible on every page when you have created a bot.
+![Create bot](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/simpleResponse1.png)
 
-![Debugging the chatbot](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/chatbotDebug.png)
+#### Step 3: Enter bot details
+1) Skip
+2) Enter bot name "createbp"
+3) Type of data "Non-personal", End user "Non-vulnerable"
+4) Skip 
 
-To give you an insight into what the chatbot is doing when you are testing it (by givings text inputs), you can use the debug functionality of the chatbot. To activate debugging, use the CHAT WITH YOUR BOT button and press the debug button on the top of the message window.
+Click the "CREATE A BOT" button
 
-![Debugging the chatbot](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/chatbotDebug1.png)
+#### Step 4: Create intent
+> **Intent** - 
+> An intent is a box of expressions that mean the same thing but are constructed in different ways. 
+Intents are the heart of your bot’s understanding. Each one of your intents represents an idea your bot is able to understand.
 
-This screen (right side) will show you information regarding the skill that was triggered by your test input and what the response the skill was. In the above screenshot you can see that the createbp skill was triggered. The result of this skill was a message with content "Please give me your first and last name".
+Now that the bot is created, the first intent can also be created. An intent can be recognized by the bot when a user sends it a message and is the heart of the bot's understanding. Once an intent is recognized, the bot can perform one or more actions based this.
 
-An additional tool that you can use is the expression analyzer. This tool accepts text strings and will show you which intent the expression is reffering to and what entities are found. It can be accessed to pressing the TEST button.
+Name your intent: createbp
 
-![Debugging the chatbot](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/chatbotDebug2.png)
+![Create intent](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/simpleResponse2.png)
 
-In the above screenshot the input test expression is "Iemke Kooijman" and the tool has determined that the corresponding intent for this expression is the createbp intent. It has also discovered that entity PERSON is in the expression.
+#### Step 5: Add expressions to intent
+> **Expression** -
+> An expression is a sentence that your bot can understand –- it’s basically something that a user might say to your bot. Expressions are organized into intents and constitute the entire knowledge of your bot. The more expressions you have, the more precisely your bot can understand its users.
 
-#### Debugging the webhook
-It can be pretty hard to debug a server side script. There are lengthy tutorials on how to do this ([this](https://blogs.sap.com/2019/08/02/cloudfoundryfun-7-connect-vs-code-to-deployed-cloud-applications) tutorial for example). An easy way to get some basic information from your script is to use the logging functionality of Cloud Foundry applications. Use the following code in your script to check any variables in your script on a certain point:
+Drill down into the intent you just created by clicking the @createbp intent. Now add an expression to your intent by typing the expression and pressing enter. If a user types this expression when interacting with the bot, it can recognize the expression and connect it to the corresponding intent.
 
-```javascript
-console.log("<ANY_STRING_OR_VARIABLE>");
+Enter expression: Register as business partner
+
+![Add expressions](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/simpleResponse3.png)
+
+#### Step 6: Create skill
+> **Skill** -
+> A skill is a block of conversation that has a clear purpose and that your bot can execute to achieve a goal. It can be as simple as the ability to greet someone, but it can also be more complex, like giving movie suggestions based on information provided by the user.
+
+Go to the Build tab and press the Create skill button. A skill can be executed after the bot has detected a certain intent from the user input. Call your skill "createbp". Leave the skill type as it is. The skill should now be visible on the canvas.
+
+![Create skill](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/simpleResponse4.png)
+
+#### Step 7: Skill trigger
+This skill should only be executed when the user refers to the createbp intent. Triggers can be added to a skill. To do this, drill down into the skill you just created by clicking the skill in the canvas. Now go to the Triggers tab and enter the following trigger:
+
+```
+If @createbp is-present
 ```
 
-After the script has run, use the following command in the command prompt to show the recent logging for your own application:
+![Skill trigger](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/simpleResponse5.png)
+
+#### Step 8: Define actions
+Go to the Actions tab. Press ADD NEW MESSAGE GROUP and then select SEND MESSAGE. Choose the TEXT option. In the message input field, enter:
 
 ```
-cf logs <APPLICATION_NAME> --recent
+Please give me your first and last name
 ```
 
-# Continue to the first assignment
-[Assignment 1](https://github.com/iemkek/SAP_Conversational_AI_Assignments/tree/1_Chatbot_with_simple_response)
+Add the following IF statement to the message group by pressing the ADD CONDITION button and typing:
+
+```
+IF #job is-present
+```
+
+The #job entity is standard predefined entity. In the expression "Register as business partner", the chatbot can automatically determine that "business partner" is a #job.
+
+> **Entity** - 
+> An entity is a keyword that is extracted from an expression. SAP Conversational AI automatically detect 28 different entities such as Datetime, Location, Person, and so on. They call them gold entities. However, you’re not limited to these gold entities. You can also tag your own custom entities to detect keywords depending on your bot’s context.
+
+![Define actions](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/simpleResponse6.png)
+
+#### Step 9: Test it
+Test your chatbot by pressing the CHAT WITH YOUR BOT button (bottom right side of the screen) and looking at the bot response.
+- Type the expression "Register as business partner" 
+
+If you do not get the correct results, try finding out what went wrong by using the tips and tricks on the master branch page [here](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/README.md#debugging-the-chatbot).
+
+![Chatbot simple response result](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/simpleResponseTest.png)
+
+#### Summary
+
+A user gives an input to the chatbot. The bot can recognize this input through **expressions**, it can detect the **intent** corresponding to the expression. When an intent is detected, a **skill** can get executed and the bot can give a response to the user.
+
+# Continue to the next assignment
+[Assignment 2](https://github.com/iemkek/SAP_Conversational_AI_Assignments/tree/2_Chatbot_with_response_from_webhook)
