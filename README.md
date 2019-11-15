@@ -9,7 +9,7 @@ At the end of this exercise we want to achieve the following functionality:
 To perform the address lookup, an additional function is needed in the webhook.js file. This function will call a simple third-party service that takes a postal code in the url and returns the corresponsing street and city. 
 
 > **postcode-api.nl** -
-> This is a free dutch API. It can be upsed to perform simple address lookups based on a postal code. Try it out [here](http://postcode-api.nl).
+> This is a free dutch API. It can be used to perform simple address lookups based on a postal code. Try it out [here](http://postcode-api.nl).
 
 The result can then be saved using the chatbot memory functionality so it can be used at a later stage.
 
@@ -167,7 +167,7 @@ An additional entity is needed in the chatbot to store the postal code and house
 Go to https://cai.tools.sap/ and log in to your account. Now select the bot you have created.
 
 #### Step 2: Create new entity
-Go to the Entities tab and press the CREATE button.
+Go to the Entities tab and press the CREATE or CREATE AN ENTITY button.
 
 ![Create new entity](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/addressLookup1.png)
 
@@ -191,7 +191,7 @@ Do the same for the second expression.
 ![Recognizing the entity in the expression](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/addressLookup4.png)
 
 #### Step 6: Add new message group
-Go to the Build tab and select the Actions tab. Choose ADD A NEW MESSAGE GROUP and select CALL WEBHOOK.
+Go to the Build tab and select the Actions tab. Choose ADD A NEW MESSAGE GROUP and click the CONNECT EXTERNAL SERVICE button. Now select CALL WEBHOOK.
 
 ![Call webhook](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/BusinessPartnerLookup2.png)
 
@@ -213,7 +213,7 @@ IF #postcode-housenumber is-present.
 Test your chatbot by pressing the CHAT WITH YOUR BOT button.
 - Type the expression "Register as business partner"
 - Now type your first and last name (make sure you use capitals)
-- Now type your postal code together with your house number in the correct format (1234 AA 1)
+- Now type your postal code together with your house number in a correct format (1234 AA 1)
 
 If you do not get the correct results, try finding out what went wrong by using the tips and tricks on the master branch page [here](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/README.md#debugging-the-chatbot).
 
