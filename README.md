@@ -198,7 +198,7 @@ app.post('/postCreateBusinessPartner', (req, res) => {
 							  content: {
 								title: sFirstName + ' ' + sLastName + ' - ' + sBusinessPartnerNr,
 								subtitle: sStreet + ' ' + sHouseNumber + ', ' + sPostalCode + ' ' + sCity,
-								imageUrl: 'https://media.licdn.com/dms/image/C4E0BAQH9lwnKDWtBew/company-logo_400_400/0?e=1572480000&v=beta&t=wYK8bopvEmZQdhFnLnwq9okBQROfCqkVGA95UCFmlmA',
+								imageUrl: 'https://media.licdn.com/dms/image/C4E0BAQH9lwnKDWtBew/company-logo_200_200/0?e=2159024400&v=beta&t=cskqJuXMWYQcpaCuwIoNfSPws_pbPO-aISOCva6BpH8',
 								buttons: []
 							  }
 							}	
