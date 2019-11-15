@@ -271,6 +271,8 @@ IF _sentiment is positive OR _sentiment is very positive
 
 The chatbot has the ability to detect the sentiment of a user input. In our case the chatbot classifies the input "Yes" as positive or very positive. We can use this standard functionality in our IF statement.
 
+**Note: We will not create the response for the "No" option in these assignments.
+
 ![Add new message group](https://github.com/iemkek/SAP_Conversational_AI_Assignments/blob/master/img/BusinessPartnerRegistrationOnS4HANA1.png)
 
 #### Step 3: Test it
